@@ -6,7 +6,7 @@
     <title>Alkimi Delivery Run | Alkimi Exchange</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -32,12 +32,13 @@
         }
 
         body {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Press Start 2P', 'Space Grotesk', sans-serif;
             background: var(--alkimi-darker);
             color: var(--white);
             min-height: 100vh;
             overflow: hidden;
             touch-action: manipulation;
+            letter-spacing: 0.5px;
         }
 
         #game-container {
@@ -137,7 +138,7 @@
         }
 
         .hud-value {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Press Start 2P', 'JetBrains Mono', monospace;
             font-size: 24px;
             font-weight: 700;
         }
@@ -169,7 +170,7 @@
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.08);
             margin: 2px 4px 0 0;
-            font-size: 12px;
+            font-size: 10px;
         }
 
         .powerup-pill strong {
@@ -263,6 +264,7 @@
             text-align: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             transition: transform 0.1s;
+            text-transform: uppercase;
         }
 
         .hazard-icon {
@@ -274,6 +276,12 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 14px;
             font-weight: 700;
+        }
+
+        .hazard-label {
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .hazard.fraud-cloud {
@@ -307,7 +315,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -375,6 +383,32 @@
             justify-content: center;
             box-shadow: 0 0 20px rgba(0, 212, 170, 0.4);
             font-size: 18px;
+        }
+
+        .easter-egg {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.65);
+            border: 2px solid var(--alkimi-green);
+            font-size: 9px;
+            text-transform: uppercase;
+            z-index: 160;
+            box-shadow: 0 0 18px rgba(0, 212, 170, 0.4);
+            animation: marcoFlyby 3.5s linear forwards;
+        }
+
+        .easter-egg .ship {
+            font-size: 16px;
+        }
+
+        @keyframes marcoFlyby {
+            0% { transform: translateX(-120%); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateX(120%); opacity: 0; }
         }
 
         .pulse-wave {
@@ -531,7 +565,7 @@
         }
 
         .final-score-value {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Press Start 2P', 'JetBrains Mono', monospace;
             font-size: 56px;
             font-weight: 700;
             color: var(--gold);
@@ -589,7 +623,7 @@
         }
 
         .leaderboard-rank {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Press Start 2P', 'JetBrains Mono', monospace;
             font-weight: 700;
             width: 30px;
             color: var(--gold);
@@ -601,7 +635,7 @@
         }
 
         .leaderboard-score {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Press Start 2P', 'JetBrains Mono', monospace;
             font-weight: 700;
         }
 
@@ -616,8 +650,8 @@
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
             padding: 12px 20px;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 18px;
+            font-family: 'Press Start 2P', 'Space Grotesk', sans-serif;
+            font-size: 12px;
             color: var(--white);
             text-align: center;
             width: 200px;
@@ -657,7 +691,7 @@
         /* Floating damage numbers */
         .damage-number {
             position: absolute;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Press Start 2P', 'JetBrains Mono', monospace;
             font-size: 18px;
             font-weight: 700;
             pointer-events: none;
@@ -885,7 +919,7 @@
         // Game State
         const game = {
             isRunning: false,
-            budget: 100,
+            budget: 100000,
             budgetDelivered: 0,
             score: 0,
             streak: 0,
@@ -910,6 +944,7 @@
             elapsedTime: 0,
             difficultyTier: 0,
             lastPopTime: 0,
+            lastEasterEgg: 0,
             activePowerups: {
                 fraudShield: 0,
                 bidBooster: 0,
@@ -928,10 +963,10 @@
 
         // Obstacle types
         const hazardTypes = [
-            { type: 'fraud-cloud', name: 'Fraud Cloud', icon: '☁️', fee: 10 },
-            { type: 'spoof-mine', name: 'Spoof Mine', icon: '💣', fee: 14 },
-            { type: 'bot-asteroid', name: 'Bot Asteroid', icon: '🪨', fee: 12 },
-            { type: 'spam-shard', name: 'Spoof Shard', icon: '📡', fee: 8 }
+            { type: 'fraud-cloud', name: 'Bot Fighter', icon: '🛸', fee: 1200, label: 'Bots' },
+            { type: 'spoof-mine', name: 'Fee Raider', icon: '🚀', fee: 1800, label: 'Fees' },
+            { type: 'bot-asteroid', name: 'Blackbox Cruiser', icon: '🛰️', fee: 1500, label: 'Blackbox' },
+            { type: 'spam-shard', name: 'Spoof Drone', icon: '👾', fee: 900, label: 'Spoof' }
         ];
 
         const bubbleFormats = [
@@ -1004,7 +1039,7 @@
         function startGame() {
             // Reset game state
             game.isRunning = true;
-            game.budget = 100;
+            game.budget = 100000;
             game.budgetDelivered = 0;
             game.score = 0;
             game.streak = 0;
@@ -1021,6 +1056,7 @@
             game.elapsedTime = 0;
             game.difficultyTier = 0;
             game.lastPopTime = 0;
+            game.lastEasterEgg = 0;
             game.hazards = [];
             game.bubbles = [];
             game.powerups = [];
@@ -1089,6 +1125,8 @@
                 game.lastShot = timestamp;
             }
 
+            maybeSpawnEasterEgg(timestamp);
+
             // Move player smoothly
             const dx = game.targetX - game.playerX;
             game.playerX += dx * 0.15;
@@ -1109,6 +1147,19 @@
             }
 
             game.animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function maybeSpawnEasterEgg(timestamp) {
+            if (game.lastEasterEgg && timestamp - game.lastEasterEgg < 45000) return;
+            if (Math.random() > 0.02) return;
+            game.lastEasterEgg = timestamp;
+
+            const egg = document.createElement('div');
+            egg.className = 'easter-egg';
+            egg.style.top = `${80 + Math.random() * 120}px`;
+            egg.innerHTML = `<span class="ship">🛸</span><span>Marco: Where is my IO</span>`;
+            container.appendChild(egg);
+            setTimeout(() => egg.remove(), 3500);
         }
 
         function updateDifficulty() {
@@ -1141,6 +1192,7 @@
             hazard.style.top = '-80px';
             hazard.innerHTML = `
                 <span class="hazard-icon">${type.icon}</span>
+                <span class="hazard-label">${type.label}</span>
                 <span class="hazard-fee">-£${type.fee}</span>
             `;
             
