@@ -970,10 +970,10 @@
         ];
 
         const bubbleFormats = [
-            { type: 'display', label: 'Display', value: 12 },
-            { type: 'video', label: 'Video', value: 16 },
-            { type: 'ctv', label: 'CTV', value: 20 },
-            { type: 'dooh', label: 'DOOH', value: 18 }
+            { type: 'display', label: 'Display', value: 1200 },
+            { type: 'video', label: 'Video', value: 1600 },
+            { type: 'ctv', label: 'CTV', value: 2000 },
+            { type: 'dooh', label: 'DOOH', value: 1800 }
         ];
 
         const bubbleVariants = [
@@ -1085,7 +1085,10 @@
             hud.classList.remove('hidden');
             player.classList.remove('hidden');
 
-            // Start game loop
+            // Start game loop (cancel any existing animation first)
+            if (game.animationId) {
+                cancelAnimationFrame(game.animationId);
+            }
             game.animationId = requestAnimationFrame(gameLoop);
         }
 
@@ -1503,8 +1506,8 @@
                 game.multiplier = 1;
             }
 
-            if (game.multiplier > game.bestStreak) {
-                game.bestStreak = game.multiplier;
+            if (game.streak > game.bestStreak) {
+                game.bestStreak = game.streak;
             }
 
             const multiplierEl = document.getElementById('multiplier');
@@ -1544,7 +1547,7 @@
                     y: originalBubble.y,
                     width: 34,
                     height: 34,
-                    value: Math.max(6, Math.floor(originalBubble.value / 2)),
+                    value: Math.max(600, Math.floor(originalBubble.value / 2)),
                     type: 'fast',
                     speed: 1.4,
                     health: 1,
@@ -1637,7 +1640,7 @@
             // Calculate final score with budget multiplier
             const budgetMultiplier = 1 + (game.budget / 100);
             const finalScore = Math.floor(game.score * budgetMultiplier);
-            const retention = game.budget;
+            const retention = Math.floor((game.budget / 100000) * 100);
 
             // Check for high score
             const leaderboard = getLeaderboard();
@@ -1646,8 +1649,8 @@
             // Update game over screen
             document.getElementById('final-score').textContent = `£${finalScore.toLocaleString()}`;
             document.getElementById('final-time').textContent = Math.floor(game.elapsedTime / 1000) + 's';
-            document.getElementById('final-budget').textContent = `£${game.budget} (${retention}%)`;
-            document.getElementById('final-streak').textContent = `${game.bestStreak}x`;
+            document.getElementById('final-budget').textContent = `£${game.budget.toLocaleString()} (${retention}%)`;
+            document.getElementById('final-streak').textContent = `${game.bestStreak}`;
             document.getElementById('final-tier').textContent = game.difficultyTier + 1;
             document.getElementById('retention-compare').textContent = retention + '%';
 
@@ -1673,10 +1676,15 @@
         }
 
         function saveScore() {
-            const name = document.getElementById('player-name').value.trim() || 'Anonymous';
-            const agency = document.getElementById('player-agency').value.trim() || 'Independent';
+            const nameInput = document.getElementById('player-name').value.trim() || 'Anonymous';
+            const agencyInput = document.getElementById('player-agency').value.trim() || 'Independent';
+
+            // Sanitize inputs to prevent XSS
+            const name = sanitizeInput(nameInput);
+            const agency = sanitizeInput(agencyInput);
+
             const leaderboard = getLeaderboard();
-            
+
             leaderboard.push({
                 name: name,
                 agency: agency,
@@ -1690,14 +1698,30 @@
             leaderboard.sort((a, b) => b.score - a.score);
             leaderboard.splice(10);
 
-            localStorage.setItem('feeDodgerLeaderboard', JSON.stringify(leaderboard));
+            try {
+                localStorage.setItem('feeDodgerLeaderboard', JSON.stringify(leaderboard));
+                showLeaderboard();
+            } catch (e) {
+                console.error('Failed to save leaderboard:', e);
+                alert('Unable to save score. Your browser may have disabled storage or it may be full.');
+                showLeaderboard();
+            }
+        }
 
-            showLeaderboard();
+        function sanitizeInput(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
         function getLeaderboard() {
-            const data = localStorage.getItem('feeDodgerLeaderboard');
-            return data ? JSON.parse(data) : [];
+            try {
+                const data = localStorage.getItem('feeDodgerLeaderboard');
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error('Failed to load leaderboard:', e);
+                return [];
+            }
         }
 
         function loadLeaderboard() {
