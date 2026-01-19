@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Fee Dodger | Alkimi Exchange</title>
+    <title>Alkimi Delivery Run | Alkimi Exchange</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -23,6 +23,12 @@
             --warning-orange: #FFA502;
             --gold: #FFD700;
             --white: #FFFFFF;
+            --format-display: #5B8CFF;
+            --format-video: #FF8F4C;
+            --format-ctv: #B76BFF;
+            --format-dooh: #38E5C4;
+            --crt-scanline: rgba(255, 255, 255, 0.04);
+            --crt-noise: rgba(255, 255, 255, 0.03);
         }
 
         body {
@@ -58,6 +64,45 @@
             pointer-events: none;
         }
 
+        #crt-overlay,
+        #crt-noise,
+        #crt-vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 120;
+        }
+
+        #crt-overlay {
+            background: repeating-linear-gradient(
+                180deg,
+                var(--crt-scanline) 0px,
+                var(--crt-scanline) 1px,
+                transparent 2px,
+                transparent 4px
+            );
+            mix-blend-mode: screen;
+            opacity: 0.5;
+        }
+
+        #crt-noise {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.2'/%3E%3C/svg%3E");
+            opacity: 0.35;
+            mix-blend-mode: soft-light;
+            animation: noiseShift 0.8s steps(2) infinite;
+        }
+
+        #crt-vignette {
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.8);
+            opacity: 0.9;
+        }
+
+        @keyframes noiseShift {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(-2%, 1%); }
+            100% { transform: translate(2%, -1%); }
+        }
+
         @keyframes gridMove {
             0% { transform: translateY(0); }
             100% { transform: translateY(50px); }
@@ -71,6 +116,8 @@
             right: 0;
             padding: 20px;
             display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
             justify-content: space-between;
             align-items: flex-start;
             z-index: 100;
@@ -107,6 +154,28 @@
             color: var(--warning-orange);
         }
 
+        .hud-value.powerups {
+            color: var(--white);
+            font-size: 14px;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .powerup-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 2px 4px 0 0;
+            font-size: 12px;
+        }
+
+        .powerup-pill strong {
+            color: var(--alkimi-green);
+        }
+
         .combo-multiplier {
             display: inline-block;
             background: var(--warning-orange);
@@ -120,10 +189,10 @@
         /* Player */
         #player {
             position: absolute;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--alkimi-green) 0%, #00A88A 100%);
+            width: 62px;
+            height: 72px;
+            border-radius: 10px 10px 30px 30px;
+            background: linear-gradient(180deg, #1E2F4A 0%, #0E1C2F 100%);
             box-shadow: 
                 0 0 30px rgba(0, 212, 170, 0.5),
                 0 0 60px rgba(0, 212, 170, 0.3),
@@ -136,17 +205,43 @@
             color: var(--alkimi-dark);
             transition: transform 0.1s ease-out;
             z-index: 50;
+            clip-path: polygon(50% 0%, 80% 18%, 100% 55%, 80% 100%, 50% 90%, 20% 100%, 0% 55%, 20% 18%);
+        }
+
+        #player::before {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #A8F5E6 0%, #1F7F73 70%);
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 8px rgba(0, 212, 170, 0.6);
         }
 
         #player::after {
-            content: '$';
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 24px;
-            font-weight: 700;
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            width: 12px;
+            height: 20px;
+            background: linear-gradient(180deg, #FF8F4C 0%, transparent 100%);
+            transform: translateX(-50%);
+            border-radius: 50%;
+            filter: blur(0.5px);
         }
 
         #player.hit {
             animation: playerHit 0.3s ease-out;
+        }
+
+        #player.shielded {
+            box-shadow: 0 0 30px rgba(0, 212, 170, 0.8),
+                        0 0 60px rgba(0, 212, 170, 0.6),
+                        0 0 90px rgba(0, 212, 170, 0.4);
         }
 
         @keyframes playerHit {
@@ -154,10 +249,10 @@
             50% { transform: scale(0.8); filter: brightness(2) hue-rotate(180deg); }
         }
 
-        /* Obstacles */
-        .obstacle {
+        /* Hazards */
+        .hazard {
             position: absolute;
-            border-radius: 8px;
+            border-radius: 18px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -170,60 +265,140 @@
             transition: transform 0.1s;
         }
 
-        .obstacle-icon {
+        .hazard-icon {
             font-size: 20px;
             margin-bottom: 4px;
         }
 
-        .obstacle-fee {
+        .hazard-fee {
             font-family: 'JetBrains Mono', monospace;
             font-size: 14px;
             font-weight: 700;
         }
 
-        .obstacle.ssp {
-            background: linear-gradient(135deg, #FF6B6B 0%, #EE5A5A 100%);
-            border: 2px solid #FF8787;
+        .hazard.fraud-cloud {
+            background: linear-gradient(135deg, #54606D 0%, #2D3640 100%);
+            border: 2px solid #6C7B88;
         }
 
-        .obstacle.dsp {
-            background: linear-gradient(135deg, #FF8C42 0%, #E67A35 100%);
-            border: 2px solid #FFA366;
+        .hazard.spoof-mine {
+            background: linear-gradient(135deg, #8A5DFF 0%, #6440D6 100%);
+            border: 2px solid #A68CFF;
         }
 
-        .obstacle.data-tax {
-            background: linear-gradient(135deg, #A55EEA 0%, #8E4AD0 100%);
-            border: 2px solid #B980F0;
+        .hazard.bot-asteroid {
+            background: linear-gradient(135deg, #FF6B6B 0%, #D44C4C 100%);
+            border: 2px solid #FF8C8C;
         }
 
-        .obstacle.hidden-margin {
-            background: linear-gradient(135deg, #485460 0%, #363D44 100%);
-            border: 2px solid #5A6670;
+        .hazard.spam-shard {
+            background: linear-gradient(135deg, #FF9F43 0%, #E68A2C 100%);
+            border: 2px solid #FFBE76;
         }
 
-        .obstacle.verification {
-            background: linear-gradient(135deg, #FC5C65 0%, #EB3B5A 100%);
-            border: 2px solid #FD7980;
-        }
-
-        /* Bonus coins */
-        .bonus {
+        /* Budget packets */
+        .bubble {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--gold) 0%, #E6C200 100%);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.1) 40%, transparent 70%);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            animation: coinPulse 1s ease-in-out infinite;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: bubblePulse 1.2s ease-in-out infinite;
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
-        @keyframes coinPulse {
+        .bubble.display {
+            background-color: rgba(91, 140, 255, 0.2);
+            border-color: var(--format-display);
+            color: var(--format-display);
+        }
+
+        .bubble.video {
+            background-color: rgba(255, 143, 76, 0.2);
+            border-color: var(--format-video);
+            color: var(--format-video);
+        }
+
+        .bubble.ctv {
+            background-color: rgba(183, 107, 255, 0.2);
+            border-color: var(--format-ctv);
+            color: var(--format-ctv);
+        }
+
+        .bubble.dooh {
+            background-color: rgba(56, 229, 196, 0.2);
+            border-color: var(--format-dooh);
+            color: var(--format-dooh);
+        }
+
+        .bubble.armored {
+            border-width: 3px;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.35);
+        }
+
+        .bubble.fast {
+            animation: bubblePulse 0.7s ease-in-out infinite;
+        }
+
+        .bubble.decoy {
+            border-style: dashed;
+            opacity: 0.7;
+        }
+
+        @keyframes bubblePulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .bubble-label {
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Power-ups */
+        .powerup {
+            position: absolute;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid var(--alkimi-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.4);
+            font-size: 18px;
+        }
+
+        .pulse-wave {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            animation: pulseWave 0.8s ease-out forwards;
+            z-index: 110;
+        }
+
+        @keyframes pulseWave {
+            0% { transform: scale(0.4); opacity: 0.9; }
+            100% { transform: scale(8); opacity: 0; }
+        }
+
+        .bullet {
+            position: absolute;
+            width: 6px;
+            height: 14px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, #9FFFE6 0%, rgba(0, 212, 170, 0.2) 100%);
+            box-shadow: 0 0 10px rgba(0, 212, 170, 0.8);
         }
 
         /* Screens */
@@ -552,33 +727,41 @@
 
             #player {
                 width: 50px;
-                height: 50px;
+                height: 60px;
             }
 
             #player::after {
-                font-size: 20px;
+                height: 16px;
             }
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <!-- HUD -->
+        <div id="game-container">
+            <!-- HUD -->
         <div id="hud" class="hidden">
             <div class="hud-item">
-                <div class="hud-label">Budget</div>
-                <div class="hud-value budget">$<span id="budget">100</span></div>
+                <div class="hud-label">Budget Delivered</div>
+                <div class="hud-value budget">£<span id="budget">0</span></div>
             </div>
             <div class="hud-item">
-                <div class="hud-label">Score</div>
-                <div class="hud-value score"><span id="score">0</span></div>
-            </div>
-            <div class="hud-item">
-                <div class="hud-label">Streak</div>
+                <div class="hud-label">Combo</div>
                 <div class="hud-value combo">
                     <span id="streak">0</span>
                     <span id="multiplier" class="combo-multiplier hidden">2x</span>
                 </div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Time Survived</div>
+                <div class="hud-value score"><span id="time-survived">0</span>s</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Difficulty Tier</div>
+                <div class="hud-value score"><span id="difficulty-tier">1</span></div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Power-Ups</div>
+                <div class="hud-value powerups" id="powerup-status">None</div>
             </div>
         </div>
 
@@ -588,21 +771,21 @@
         <!-- Start Screen -->
         <div id="start-screen" class="screen">
             <div class="logo">Alkimi Exchange</div>
-            <h1 class="game-title">Fee Dodger</h1>
-            <p class="game-subtitle">Navigate your ad dollar through the supply chain. Dodge the fees, keep your budget.</p>
+            <h1 class="game-title">Alkimi Delivery Run</h1>
+            <p class="game-subtitle">Pilot the Alkimi ship through programmatic space. Deliver budget packets, dodge fraud clouds, and power the exchange.</p>
             
             <div class="instructions">
                 <div class="instruction">
-                    <div class="instruction-icon">👆</div>
-                    <div class="instruction-text">Tap to<br>move</div>
+                    <div class="instruction-icon">🕹️</div>
+                    <div class="instruction-text">Tap/drag<br>to steer</div>
                 </div>
                 <div class="instruction">
-                    <div class="instruction-icon">💰</div>
-                    <div class="instruction-text">Dodge<br>fees</div>
+                    <div class="instruction-icon">🫧</div>
+                    <div class="instruction-text">Pop budget<br>packets</div>
                 </div>
                 <div class="instruction">
-                    <div class="instruction-icon">⭐</div>
-                    <div class="instruction-text">Collect<br>bonuses</div>
+                    <div class="instruction-icon">⚡</div>
+                    <div class="instruction-text">Collect<br>power-ups</div>
                 </div>
             </div>
 
@@ -615,33 +798,40 @@
             <div id="new-highscore" class="new-high-score hidden">🏆 New High Score!</div>
             
             <div class="final-score">
-                <div class="final-score-label">Final Score</div>
-                <div class="final-score-value" id="final-score">0</div>
+                <div class="final-score-label">Total Budget Delivered</div>
+                <div class="final-score-value" id="final-score">£0</div>
             </div>
 
             <div class="results">
                 <div class="result-row">
-                    <span class="result-label">Distance</span>
-                    <span class="result-value" id="final-distance">0 hops</span>
+                    <span class="result-label">Time Survived</span>
+                    <span class="result-value" id="final-time">0s</span>
                 </div>
                 <div class="result-row">
-                    <span class="result-label">Budget Retained</span>
-                    <span class="result-value highlight" id="final-budget">$0 (0%)</span>
+                    <span class="result-label">Budget Integrity</span>
+                    <span class="result-value highlight" id="final-budget">£0 (0%)</span>
                 </div>
                 <div class="result-row">
-                    <span class="result-label">Best Streak</span>
-                    <span class="result-value" id="final-streak">0</span>
+                    <span class="result-label">Peak Combo</span>
+                    <span class="result-value" id="final-streak">0x</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Difficulty Tier</span>
+                    <span class="result-value" id="final-tier">1</span>
                 </div>
             </div>
 
             <div class="insight-box">
-                <p>Industry average retention: <strong>50%</strong><br>
-                You kept <strong id="retention-compare">0%</strong>.<br><br>
-                With Alkimi, brands keep <strong>90%+</strong> every time.</p>
+                <p>Industry average delivery: <strong>50%</strong><br>
+                You delivered <strong id="retention-compare">0%</strong>.<br><br>
+                With Alkimi, brands deliver <strong>90%+</strong> every time.</p>
             </div>
 
             <div class="name-input-container" id="name-input-container">
                 <input type="text" class="name-input" id="player-name" placeholder="Your initials" maxlength="10">
+            </div>
+            <div class="name-input-container">
+                <input type="text" class="name-input" id="player-agency" placeholder="Agency" maxlength="20">
             </div>
 
             <button class="btn btn-primary" id="save-score-btn">Save Score</button>
@@ -658,26 +848,73 @@
 
             <button class="btn btn-primary" id="back-btn">Back</button>
         </div>
+
+        <div id="crt-overlay"></div>
+        <div id="crt-noise"></div>
+        <div id="crt-vignette"></div>
     </div>
 
     <script>
+        const COLOR_PALETTE = {
+            display: '#5B8CFF',
+            video: '#FF8F4C',
+            ctv: '#B76BFF',
+            dooh: '#38E5C4'
+        };
+
+        const DIFFICULTY_SETTINGS = {
+            interval: 30000,
+            baseSpeed: 2.6,
+            speedStep: 0.6,
+            hazardSpawnBase: 1500,
+            hazardSpawnMin: 600,
+            bubbleSpawnBase: 900,
+            bubbleSpawnMin: 350,
+            powerupSpawnChance: 0.08
+        };
+
+        const COMBO_WINDOW = 1400;
+        const PLAYER_DIMENSIONS = {
+            width: 62,
+            height: 72,
+            halfWidth: 31,
+            halfHeight: 36,
+            hitbox: 46
+        };
+
         // Game State
         const game = {
             isRunning: false,
             budget: 100,
+            budgetDelivered: 0,
             score: 0,
-            distance: 0,
             streak: 0,
             bestStreak: 0,
             multiplier: 1,
             playerX: 0,
             playerY: 0,
             targetX: 0,
-            obstacles: [],
-            bonuses: [],
-            speed: 3,
-            spawnRate: 1500,
-            lastSpawn: 0,
+            hazards: [],
+            bubbles: [],
+            powerups: [],
+            bullets: [],
+            speed: DIFFICULTY_SETTINGS.baseSpeed,
+            hazardSpawnRate: DIFFICULTY_SETTINGS.hazardSpawnBase,
+            bubbleSpawnRate: DIFFICULTY_SETTINGS.bubbleSpawnBase,
+            lastHazardSpawn: 0,
+            lastBubbleSpawn: 0,
+            lastPowerupSpawn: 0,
+            lastShot: 0,
+            fireRate: 420,
+            startTime: 0,
+            elapsedTime: 0,
+            difficultyTier: 0,
+            lastPopTime: 0,
+            activePowerups: {
+                fraudShield: 0,
+                bidBooster: 0,
+                supplyCleanser: 0
+            },
             animationId: null
         };
 
@@ -690,12 +927,33 @@
         const leaderboardScreen = document.getElementById('leaderboard-screen');
 
         // Obstacle types
-        const obstacleTypes = [
-            { type: 'ssp', name: 'SSP Fee', icon: '🏢', fee: 8 },
-            { type: 'dsp', name: 'DSP Fee', icon: '🖥️', fee: 10 },
-            { type: 'data-tax', name: 'Data Tax', icon: '📊', fee: 12 },
-            { type: 'hidden-margin', name: 'Hidden Margin', icon: '👻', fee: 15 },
-            { type: 'verification', name: 'Verification', icon: '🔍', fee: 6 }
+        const hazardTypes = [
+            { type: 'fraud-cloud', name: 'Fraud Cloud', icon: '☁️', fee: 10 },
+            { type: 'spoof-mine', name: 'Spoof Mine', icon: '💣', fee: 14 },
+            { type: 'bot-asteroid', name: 'Bot Asteroid', icon: '🪨', fee: 12 },
+            { type: 'spam-shard', name: 'Spoof Shard', icon: '📡', fee: 8 }
+        ];
+
+        const bubbleFormats = [
+            { type: 'display', label: 'Display', value: 12 },
+            { type: 'video', label: 'Video', value: 16 },
+            { type: 'ctv', label: 'CTV', value: 20 },
+            { type: 'dooh', label: 'DOOH', value: 18 }
+        ];
+
+        const bubbleVariants = [
+            { type: 'standard', speed: 1, health: 1, unlockTier: 0 },
+            { type: 'fast', speed: 1.4, health: 1, unlockTier: 1 },
+            { type: 'armored', speed: 1, health: 2, unlockTier: 2 },
+            { type: 'splitting', speed: 1.1, health: 1, unlockTier: 3 },
+            { type: 'decoy', speed: 0.9, health: 1, unlockTier: 4, decoy: true }
+        ];
+
+        const powerupTypes = [
+            { type: 'proofPulse', icon: '🌊', label: 'Proof Pulse', duration: 0 },
+            { type: 'fraudShield', icon: '🛡️', label: 'Fraud Shield', duration: 6000 },
+            { type: 'bidBooster', icon: '🚀', label: 'Bid Booster', duration: 6000 },
+            { type: 'supplyCleanser', icon: '🧼', label: 'Supply Cleanser', duration: 5000 }
         ];
 
         // Initialize
@@ -724,8 +982,8 @@
             document.addEventListener('keydown', (e) => {
                 if (!game.isRunning) return;
                 const moveAmount = 50;
-                if (e.key === 'ArrowLeft') game.targetX = Math.max(30, game.playerX - moveAmount);
-                if (e.key === 'ArrowRight') game.targetX = Math.min(container.clientWidth - 30, game.playerX + moveAmount);
+                if (e.key === 'ArrowLeft') game.targetX = Math.max(PLAYER_DIMENSIONS.halfWidth, game.playerX - moveAmount);
+                if (e.key === 'ArrowRight') game.targetX = Math.min(container.clientWidth - PLAYER_DIMENSIONS.halfWidth, game.playerX + moveAmount);
             });
         }
 
@@ -740,34 +998,49 @@
                 clientX = e.clientX;
             }
             
-            game.targetX = Math.max(30, Math.min(container.clientWidth - 30, clientX));
+            game.targetX = Math.max(PLAYER_DIMENSIONS.halfWidth, Math.min(container.clientWidth - PLAYER_DIMENSIONS.halfWidth, clientX));
         }
 
         function startGame() {
             // Reset game state
             game.isRunning = true;
             game.budget = 100;
+            game.budgetDelivered = 0;
             game.score = 0;
-            game.distance = 0;
             game.streak = 0;
             game.bestStreak = 0;
             game.multiplier = 1;
-            game.speed = 3;
-            game.spawnRate = 1500;
-            game.lastSpawn = 0;
-            game.obstacles = [];
-            game.bonuses = [];
+            game.speed = DIFFICULTY_SETTINGS.baseSpeed;
+            game.hazardSpawnRate = DIFFICULTY_SETTINGS.hazardSpawnBase;
+            game.bubbleSpawnRate = DIFFICULTY_SETTINGS.bubbleSpawnBase;
+            game.lastHazardSpawn = 0;
+            game.lastBubbleSpawn = 0;
+            game.lastPowerupSpawn = 0;
+            game.lastShot = 0;
+            game.startTime = 0;
+            game.elapsedTime = 0;
+            game.difficultyTier = 0;
+            game.lastPopTime = 0;
+            game.hazards = [];
+            game.bubbles = [];
+            game.powerups = [];
+            game.bullets = [];
+            game.activePowerups = {
+                fraudShield: 0,
+                bidBooster: 0,
+                supplyCleanser: 0
+            };
 
             // Clear existing obstacles
-            document.querySelectorAll('.obstacle, .bonus, .damage-number, .speed-line').forEach(el => el.remove());
+            document.querySelectorAll('.hazard, .bubble, .powerup, .bullet, .damage-number, .speed-line, .pulse-wave').forEach(el => el.remove());
 
             // Position player
             game.playerX = container.clientWidth / 2;
             game.playerY = container.clientHeight - 120;
             game.targetX = game.playerX;
             
-            player.style.left = game.playerX - 30 + 'px';
-            player.style.top = game.playerY - 30 + 'px';
+            player.style.left = game.playerX - PLAYER_DIMENSIONS.halfWidth + 'px';
+            player.style.top = game.playerY - PLAYER_DIMENSIONS.halfHeight + 'px';
 
             // Show game elements
             startScreen.classList.add('hidden');
@@ -783,35 +1056,49 @@
         function gameLoop(timestamp) {
             if (!game.isRunning) return;
 
-            // Update distance/score
-            game.distance++;
-            game.score += game.multiplier;
+            if (!game.startTime) {
+                game.startTime = timestamp;
+            }
+            game.elapsedTime = timestamp - game.startTime;
 
-            // Increase difficulty over time
-            if (game.distance % 500 === 0) {
-                game.speed = Math.min(8, game.speed + 0.5);
-                game.spawnRate = Math.max(600, game.spawnRate - 100);
+            updateDifficulty();
+            updatePowerups(timestamp);
+
+            // Spawn hazards
+            if (timestamp - game.lastHazardSpawn > game.hazardSpawnRate) {
+                spawnHazard();
+                game.lastHazardSpawn = timestamp;
             }
 
-            // Spawn obstacles
-            if (timestamp - game.lastSpawn > game.spawnRate) {
-                spawnObstacle();
-                game.lastSpawn = timestamp;
-                
-                // Occasionally spawn bonus
-                if (Math.random() < 0.2) {
-                    spawnBonus();
-                }
+            // Spawn bubbles
+            if (timestamp - game.lastBubbleSpawn > game.bubbleSpawnRate) {
+                spawnBubble();
+                game.lastBubbleSpawn = timestamp;
+            }
+
+            // Spawn powerups occasionally
+            if (timestamp - game.lastPowerupSpawn > 1200 && Math.random() < DIFFICULTY_SETTINGS.powerupSpawnChance) {
+                spawnPowerup();
+                game.lastPowerupSpawn = timestamp;
+            }
+
+            // Auto fire
+            const currentFireRate = isPowerupActive('bidBooster') ? 240 : game.fireRate;
+            if (timestamp - game.lastShot > currentFireRate) {
+                spawnBullet();
+                game.lastShot = timestamp;
             }
 
             // Move player smoothly
             const dx = game.targetX - game.playerX;
             game.playerX += dx * 0.15;
-            player.style.left = game.playerX - 30 + 'px';
+            player.style.left = game.playerX - PLAYER_DIMENSIONS.halfWidth + 'px';
 
             // Update obstacles
-            updateObstacles();
-            updateBonuses();
+            updateHazards();
+            updateBubbles(timestamp);
+            updatePowerupDrops();
+            updateBullets();
 
             // Update HUD
             updateHUD();
@@ -824,26 +1111,43 @@
             game.animationId = requestAnimationFrame(gameLoop);
         }
 
-        function spawnObstacle() {
-            const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+        function updateDifficulty() {
+            const newTier = Math.floor(game.elapsedTime / DIFFICULTY_SETTINGS.interval);
+            if (newTier !== game.difficultyTier) {
+                game.difficultyTier = newTier;
+            }
+
+            game.speed = DIFFICULTY_SETTINGS.baseSpeed + game.difficultyTier * DIFFICULTY_SETTINGS.speedStep;
+            game.hazardSpawnRate = Math.max(
+                DIFFICULTY_SETTINGS.hazardSpawnMin,
+                DIFFICULTY_SETTINGS.hazardSpawnBase - game.difficultyTier * 120
+            );
+            game.bubbleSpawnRate = Math.max(
+                DIFFICULTY_SETTINGS.bubbleSpawnMin,
+                DIFFICULTY_SETTINGS.bubbleSpawnBase - game.difficultyTier * 90
+            );
+        }
+
+        function spawnHazard() {
+            const type = hazardTypes[Math.floor(Math.random() * hazardTypes.length)];
             const width = 70 + Math.random() * 30;
             const x = Math.random() * (container.clientWidth - width);
             
-            const obstacle = document.createElement('div');
-            obstacle.className = `obstacle ${type.type}`;
-            obstacle.style.width = width + 'px';
-            obstacle.style.height = '70px';
-            obstacle.style.left = x + 'px';
-            obstacle.style.top = '-80px';
-            obstacle.innerHTML = `
-                <span class="obstacle-icon">${type.icon}</span>
-                <span class="obstacle-fee">-$${type.fee}</span>
+            const hazard = document.createElement('div');
+            hazard.className = `hazard ${type.type}`;
+            hazard.style.width = width + 'px';
+            hazard.style.height = '70px';
+            hazard.style.left = x + 'px';
+            hazard.style.top = '-80px';
+            hazard.innerHTML = `
+                <span class="hazard-icon">${type.icon}</span>
+                <span class="hazard-fee">-£${type.fee}</span>
             `;
             
-            container.appendChild(obstacle);
+            container.appendChild(hazard);
             
-            game.obstacles.push({
-                element: obstacle,
+            game.hazards.push({
+                element: hazard,
                 x: x,
                 y: -80,
                 width: width,
@@ -852,50 +1156,100 @@
             });
         }
 
-        function spawnBonus() {
-            const x = Math.random() * (container.clientWidth - 40);
+        function spawnBubble() {
+            const format = bubbleFormats[Math.floor(Math.random() * bubbleFormats.length)];
+            const availableVariants = bubbleVariants.filter(variant => variant.unlockTier <= game.difficultyTier);
+            const variant = availableVariants[Math.floor(Math.random() * availableVariants.length)];
+            const size = variant.type === 'splitting' ? 46 : 48;
+            const x = Math.random() * (container.clientWidth - size);
             
-            const bonus = document.createElement('div');
-            bonus.className = 'bonus';
-            bonus.style.left = x + 'px';
-            bonus.style.top = '-50px';
-            bonus.textContent = '★';
+            const bubble = document.createElement('div');
+            bubble.className = `bubble ${format.type} ${variant.type}`;
+            bubble.style.left = x + 'px';
+            bubble.style.top = '-50px';
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.innerHTML = `<span class="bubble-label">${format.label}</span>`;
             
-            container.appendChild(bonus);
+            container.appendChild(bubble);
             
-            game.bonuses.push({
-                element: bonus,
+            game.bubbles.push({
+                element: bubble,
                 x: x,
                 y: -50,
-                width: 40,
-                height: 40
+                width: size,
+                height: size,
+                value: format.value,
+                type: variant.type,
+                speed: variant.speed,
+                health: variant.health,
+                decoy: variant.decoy || false
             });
         }
 
-        function updateObstacles() {
+        function spawnPowerup() {
+            const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
+            const x = Math.random() * (container.clientWidth - 40);
+            
+            const powerup = document.createElement('div');
+            powerup.className = 'powerup';
+            powerup.style.left = x + 'px';
+            powerup.style.top = '-50px';
+            powerup.textContent = type.icon;
+            powerup.dataset.type = type.type;
+            
+            container.appendChild(powerup);
+            
+            game.powerups.push({
+                element: powerup,
+                x: x,
+                y: -50,
+                width: 42,
+                height: 42,
+                type: type.type
+            });
+        }
+
+        function spawnBullet() {
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            const x = game.playerX - 3;
+            const y = game.playerY - PLAYER_DIMENSIONS.halfHeight - 10;
+            bullet.style.left = x + 'px';
+            bullet.style.top = y + 'px';
+            container.appendChild(bullet);
+
+            game.bullets.push({
+                element: bullet,
+                x: x,
+                y: y,
+                width: 6,
+                height: 14,
+                speed: 7
+            });
+        }
+
+        function updateHazards() {
             const playerRect = {
-                x: game.playerX - 25,
-                y: game.playerY - 25,
-                width: 50,
-                height: 50
+                x: game.playerX - PLAYER_DIMENSIONS.hitbox / 2,
+                y: game.playerY - PLAYER_DIMENSIONS.hitbox / 2,
+                width: PLAYER_DIMENSIONS.hitbox,
+                height: PLAYER_DIMENSIONS.hitbox
             };
 
-            game.obstacles = game.obstacles.filter(obs => {
-                obs.y += game.speed;
-                obs.element.style.top = obs.y + 'px';
+            game.hazards = game.hazards.filter(hazard => {
+                hazard.y += game.speed;
+                hazard.element.style.top = hazard.y + 'px';
 
                 // Check collision
-                if (checkCollision(playerRect, obs)) {
-                    hitObstacle(obs);
+                if (checkCollision(playerRect, hazard)) {
+                    hitHazard(hazard);
                     return false;
                 }
 
                 // Remove if off screen
-                if (obs.y > container.clientHeight) {
-                    obs.element.remove();
-                    game.streak++;
-                    if (game.streak > game.bestStreak) game.bestStreak = game.streak;
-                    updateMultiplier();
+                if (hazard.y > container.clientHeight) {
+                    hazard.element.remove();
                     return false;
                 }
 
@@ -903,32 +1257,105 @@
             });
         }
 
-        function updateBonuses() {
+        function updateBubbles(timestamp) {
             const playerRect = {
-                x: game.playerX - 25,
-                y: game.playerY - 25,
-                width: 50,
-                height: 50
+                x: game.playerX - PLAYER_DIMENSIONS.hitbox / 2,
+                y: game.playerY - PLAYER_DIMENSIONS.hitbox / 2,
+                width: PLAYER_DIMENSIONS.hitbox,
+                height: PLAYER_DIMENSIONS.hitbox
             };
 
-            game.bonuses = game.bonuses.filter(bonus => {
-                bonus.y += game.speed;
-                bonus.element.style.top = bonus.y + 'px';
+            if (game.lastPopTime && timestamp - game.lastPopTime > COMBO_WINDOW && game.streak > 0) {
+                resetCombo();
+            }
 
-                // Check collision
-                if (checkCollision(playerRect, bonus)) {
-                    collectBonus(bonus);
-                    return false;
+            game.bubbles = game.bubbles.filter(bubble => {
+                bubble.y += game.speed * bubble.speed;
+                bubble.element.style.top = bubble.y + 'px';
+
+                if (checkCollision(playerRect, bubble)) {
+                    const popped = popBubble(bubble, timestamp);
+                    return !popped;
                 }
 
                 // Remove if off screen
-                if (bonus.y > container.clientHeight) {
-                    bonus.element.remove();
+                if (bubble.y > container.clientHeight) {
+                    bubble.element.remove();
                     return false;
                 }
 
                 return true;
             });
+        }
+
+        function updatePowerupDrops() {
+            const playerRect = {
+                x: game.playerX - PLAYER_DIMENSIONS.hitbox / 2,
+                y: game.playerY - PLAYER_DIMENSIONS.hitbox / 2,
+                width: PLAYER_DIMENSIONS.hitbox,
+                height: PLAYER_DIMENSIONS.hitbox
+            };
+
+            game.powerups = game.powerups.filter(powerup => {
+                powerup.y += game.speed * 0.9;
+                powerup.element.style.top = powerup.y + 'px';
+
+                if (checkCollision(playerRect, powerup)) {
+                    activatePowerup(powerup.type);
+                    powerup.element.remove();
+                    return false;
+                }
+
+                if (powerup.y > container.clientHeight) {
+                    powerup.element.remove();
+                    return false;
+                }
+
+                return true;
+            });
+        }
+
+        function updateBullets() {
+            game.bullets = game.bullets.filter(bullet => {
+                bullet.y -= bullet.speed;
+                const targetX = isPowerupActive('bidBooster') ? getNearestBubbleX(bullet.x) : null;
+                if (targetX !== null) {
+                    bullet.x += (targetX - bullet.x) * 0.05;
+                }
+                bullet.element.style.left = bullet.x + 'px';
+                bullet.element.style.top = bullet.y + 'px';
+
+                const hitBubble = game.bubbles.find(bubble => checkCollision(bullet, bubble));
+                if (hitBubble) {
+                    const popped = popBubble(hitBubble, performance.now());
+                    if (popped) {
+                        game.bubbles = game.bubbles.filter(bubble => bubble !== hitBubble);
+                    }
+                    bullet.element.remove();
+                    return false;
+                }
+
+                if (bullet.y < -20) {
+                    bullet.element.remove();
+                    return false;
+                }
+
+                return true;
+            });
+        }
+
+        function getNearestBubbleX(x) {
+            if (game.bubbles.length === 0) return null;
+            let closest = game.bubbles[0];
+            let bestDist = Math.abs(closest.x - x);
+            game.bubbles.forEach(bubble => {
+                const dist = Math.abs(bubble.x - x);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    closest = bubble;
+                }
+            });
+            return closest.x;
         }
 
         function checkCollision(rect1, rect2) {
@@ -938,19 +1365,24 @@
                    rect1.y + rect1.height > rect2.y;
         }
 
-        function hitObstacle(obs) {
-            game.budget -= obs.fee;
-            game.streak = 0;
-            game.multiplier = 1;
+        function hitHazard(hazard) {
+            if (isPowerupActive('fraudShield')) {
+                showDamageNumber(hazard.x, hazard.y, 'Shielded', 'positive');
+                hazard.element.remove();
+                return;
+            }
+
+            game.budget -= hazard.fee;
+            resetCombo();
             
             // Visual feedback
             player.classList.add('hit');
             setTimeout(() => player.classList.remove('hit'), 300);
             
             // Damage number
-            showDamageNumber(game.playerX, game.playerY - 40, `-$${obs.fee}`, 'negative');
+            showDamageNumber(game.playerX, game.playerY - 40, `-£${hazard.fee}`, 'negative');
             
-            obs.element.remove();
+            hazard.element.remove();
 
             // Check game over
             if (game.budget <= 0) {
@@ -964,21 +1396,63 @@
             }
         }
 
-        function collectBonus(bonus) {
-            game.score += 100 * game.multiplier;
-            
-            showDamageNumber(bonus.x + 20, bonus.y, `+${100 * game.multiplier}`, 'positive');
-            
-            bonus.element.remove();
+        function popBubble(bubble, timestamp) {
+            bubble.health -= 1;
+            if (bubble.health > 0) {
+                bubble.element.classList.add('armored');
+                showDamageNumber(bubble.x, bubble.y, 'Cracked', 'positive');
+                return false;
+            }
+
+            const isDecoy = bubble.decoy && !isPowerupActive('supplyCleanser');
+            const reward = isDecoy ? 0 : bubble.value;
+
+            if (reward > 0) {
+                game.score += reward * game.multiplier;
+                game.budgetDelivered += reward * game.multiplier;
+                registerCombo(timestamp);
+            } else {
+                resetCombo();
+            }
+
+            if (bubble.type === 'splitting') {
+                spawnSplitBubbles(bubble);
+            }
+
+            showDamageNumber(bubble.x, bubble.y, isDecoy ? 'Junk' : `+£${reward * game.multiplier}`, 'positive');
+            bubble.element.remove();
+            return true;
+        }
+
+        function registerCombo(timestamp) {
+            if (timestamp - game.lastPopTime <= COMBO_WINDOW) {
+                game.streak += 1;
+            } else {
+                game.streak = 1;
+            }
+            game.lastPopTime = timestamp;
+            updateMultiplier();
+        }
+
+        function resetCombo() {
+            game.streak = 0;
+            game.multiplier = 1;
+            game.lastPopTime = 0;
         }
 
         function updateMultiplier() {
             if (game.streak >= 10) {
+                game.multiplier = 4;
+            } else if (game.streak >= 6) {
                 game.multiplier = 3;
-            } else if (game.streak >= 5) {
+            } else if (game.streak >= 3) {
                 game.multiplier = 2;
             } else {
                 game.multiplier = 1;
+            }
+
+            if (game.multiplier > game.bestStreak) {
+                game.bestStreak = game.multiplier;
             }
 
             const multiplierEl = document.getElementById('multiplier');
@@ -1001,6 +1475,32 @@
             setTimeout(() => dmg.remove(), 1000);
         }
 
+        function spawnSplitBubbles(originalBubble) {
+            for (let i = 0; i < 2; i++) {
+                const x = Math.max(0, Math.min(container.clientWidth - 34, originalBubble.x + (i === 0 ? -18 : 18)));
+                const bubble = document.createElement('div');
+                bubble.className = `bubble ${originalBubble.element.classList.contains('display') ? 'display' : originalBubble.element.classList.contains('video') ? 'video' : originalBubble.element.classList.contains('ctv') ? 'ctv' : 'dooh'} fast`;
+                bubble.style.left = x + 'px';
+                bubble.style.top = originalBubble.y + 'px';
+                bubble.style.width = '34px';
+                bubble.style.height = '34px';
+                bubble.innerHTML = `<span class="bubble-label">Split</span>`;
+                container.appendChild(bubble);
+                game.bubbles.push({
+                    element: bubble,
+                    x: x,
+                    y: originalBubble.y,
+                    width: 34,
+                    height: 34,
+                    value: Math.max(6, Math.floor(originalBubble.value / 2)),
+                    type: 'fast',
+                    speed: 1.4,
+                    health: 1,
+                    decoy: false
+                });
+            }
+        }
+
         function spawnSpeedLine() {
             const line = document.createElement('div');
             line.className = 'speed-line';
@@ -1011,10 +1511,71 @@
             setTimeout(() => line.remove(), 500);
         }
 
+        function updatePowerups(timestamp) {
+            const now = timestamp;
+            const shieldActive = isPowerupActive('fraudShield');
+            if (shieldActive) {
+                player.classList.add('shielded');
+            } else {
+                player.classList.remove('shielded');
+            }
+
+            Object.keys(game.activePowerups).forEach(key => {
+                if (game.activePowerups[key] && game.activePowerups[key] < now) {
+                    game.activePowerups[key] = 0;
+                }
+            });
+        }
+
+        function activatePowerup(type) {
+            const powerup = powerupTypes.find(item => item.type === type);
+            if (!powerup) return;
+
+            if (type === 'proofPulse') {
+                triggerPulse();
+                return;
+            }
+
+            game.activePowerups[type] = performance.now() + powerup.duration;
+        }
+
+        function triggerPulse() {
+            const wave = document.createElement('div');
+            wave.className = 'pulse-wave';
+            wave.style.left = game.playerX - 40 + 'px';
+            wave.style.top = game.playerY - 40 + 'px';
+            container.appendChild(wave);
+            setTimeout(() => wave.remove(), 800);
+
+            const now = performance.now();
+            game.bubbles.forEach(bubble => {
+                popBubble(bubble, now);
+                if (bubble.element.isConnected) {
+                    bubble.element.remove();
+                }
+            });
+            game.bubbles = [];
+        }
+
+        function isPowerupActive(type) {
+            return game.activePowerups[type] && game.activePowerups[type] > performance.now();
+        }
+
         function updateHUD() {
-            document.getElementById('budget').textContent = game.budget;
-            document.getElementById('score').textContent = game.score;
+            document.getElementById('budget').textContent = game.budgetDelivered.toLocaleString();
             document.getElementById('streak').textContent = game.streak;
+            document.getElementById('time-survived').textContent = Math.floor(game.elapsedTime / 1000);
+            document.getElementById('difficulty-tier').textContent = game.difficultyTier + 1;
+
+            const powerupStatus = document.getElementById('powerup-status');
+            const activeLabels = [];
+            powerupTypes.forEach(powerup => {
+                if (powerup.duration > 0 && isPowerupActive(powerup.type)) {
+                    const remaining = Math.ceil((game.activePowerups[powerup.type] - performance.now()) / 1000);
+                    activeLabels.push(`<span class="powerup-pill">${powerup.icon} ${powerup.label} <strong>${remaining}s</strong></span>`);
+                }
+            });
+            powerupStatus.innerHTML = activeLabels.length ? activeLabels.join('') : 'None';
         }
 
         function endGame() {
@@ -1031,10 +1592,11 @@
             const isHighScore = leaderboard.length < 10 || finalScore > leaderboard[leaderboard.length - 1].score;
 
             // Update game over screen
-            document.getElementById('final-score').textContent = finalScore;
-            document.getElementById('final-distance').textContent = Math.floor(game.distance / 10) + ' hops';
-            document.getElementById('final-budget').textContent = `$${game.budget} (${retention}%)`;
-            document.getElementById('final-streak').textContent = game.bestStreak;
+            document.getElementById('final-score').textContent = `£${finalScore.toLocaleString()}`;
+            document.getElementById('final-time').textContent = Math.floor(game.elapsedTime / 1000) + 's';
+            document.getElementById('final-budget').textContent = `£${game.budget} (${retention}%)`;
+            document.getElementById('final-streak').textContent = `${game.bestStreak}x`;
+            document.getElementById('final-tier').textContent = game.difficultyTier + 1;
             document.getElementById('retention-compare').textContent = retention + '%';
 
             // Show/hide high score badge
@@ -1055,16 +1617,20 @@
 
             // Clear input
             document.getElementById('player-name').value = '';
+            document.getElementById('player-agency').value = '';
         }
 
         function saveScore() {
             const name = document.getElementById('player-name').value.trim() || 'Anonymous';
+            const agency = document.getElementById('player-agency').value.trim() || 'Independent';
             const leaderboard = getLeaderboard();
             
             leaderboard.push({
                 name: name,
+                agency: agency,
                 score: game.finalScore,
                 budget: game.budget,
+                delivered: game.budgetDelivered,
                 date: new Date().toISOString()
             });
 
@@ -1098,8 +1664,8 @@
             list.innerHTML = leaderboard.map((entry, index) => `
                 <div class="leaderboard-entry ${entry.score === highlightScore ? 'highlight' : ''}">
                     <span class="leaderboard-rank">#${index + 1}</span>
-                    <span class="leaderboard-name">${entry.name}</span>
-                    <span class="leaderboard-score">${entry.score.toLocaleString()}</span>
+                    <span class="leaderboard-name">${entry.name} <span style="opacity:0.6;">(${entry.agency || 'Independent'})</span></span>
+                    <span class="leaderboard-score">£${entry.score.toLocaleString()}</span>
                 </div>
             `).join('');
         }
