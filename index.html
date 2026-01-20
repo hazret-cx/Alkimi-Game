@@ -970,6 +970,10 @@
             // Touch/Mouse controls
             container.addEventListener('touchstart', handleInput, { passive: false });
             container.addEventListener('touchmove', handleInput, { passive: false });
+            container.addEventListener('mousedown', handleInput);
+            container.addEventListener('mousemove', (e) => {
+                if (game.isRunning && e.buttons === 1) handleInput(e);
+            });
 
             // Buttons
             document.getElementById('start-btn').addEventListener('click', startGame);
@@ -978,6 +982,13 @@
             document.getElementById('leaderboard-btn').addEventListener('click', showLeaderboard);
             document.getElementById('back-btn').addEventListener('click', showStartScreen);
 
+            // Keyboard controls (for testing)
+            document.addEventListener('keydown', (e) => {
+                if (!game.isRunning) return;
+                const moveAmount = 50;
+                if (e.key === 'ArrowLeft') game.targetX = Math.max(PLAYER_DIMENSIONS.halfWidth, game.playerX - moveAmount);
+                if (e.key === 'ArrowRight') game.targetX = Math.min(container.clientWidth - PLAYER_DIMENSIONS.halfWidth, game.playerX + moveAmount);
+            });
         }
 
         function handleInput(e) {
