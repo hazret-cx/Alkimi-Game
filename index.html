@@ -39,6 +39,9 @@
             overflow: hidden;
             touch-action: manipulation;
             letter-spacing: 0.5px;
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         #game-container {
@@ -115,12 +118,12 @@
             top: 0;
             left: 0;
             right: 0;
-            padding: 20px;
+            padding: calc(16px + env(safe-area-inset-top)) 18px 12px;
             display: flex;
             flex-wrap: wrap;
-            gap: 14px;
-            justify-content: space-between;
-            align-items: flex-start;
+            gap: 12px;
+            justify-content: space-around;
+            align-items: center;
             z-index: 100;
             background: linear-gradient(180deg, rgba(6, 13, 24, 0.9) 0%, transparent 100%);
         }
@@ -147,44 +150,29 @@
             color: var(--alkimi-green);
         }
 
-        .hud-value.score {
+        .hud-value.level {
             color: var(--gold);
         }
 
-        .hud-value.combo {
+        .hud-value.timer {
             color: var(--warning-orange);
         }
 
-        .hud-value.powerups {
-            color: var(--white);
+        .level-toast {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 16px 24px;
+            border-radius: 14px;
+            background: rgba(0, 212, 170, 0.2);
+            border: 1px solid rgba(0, 212, 170, 0.5);
             font-size: 14px;
-            text-align: left;
-            line-height: 1.4;
-        }
-
-        .powerup-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.08);
-            margin: 2px 4px 0 0;
-            font-size: 10px;
-        }
-
-        .powerup-pill strong {
-            color: var(--alkimi-green);
-        }
-
-        .combo-multiplier {
-            display: inline-block;
-            background: var(--warning-orange);
-            color: var(--alkimi-dark);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 14px;
-            margin-left: 4px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            z-index: 160;
+            text-align: center;
+            backdrop-filter: blur(6px);
         }
 
         /* Player */
@@ -204,33 +192,6 @@
 
         #player.hit {
             animation: playerHit 0.3s ease-out;
-        }
-
-        #player.shielded {
-            filter: drop-shadow(0 0 16px rgba(0, 212, 170, 0.9))
-                    drop-shadow(0 0 32px rgba(0, 212, 170, 0.7))
-                    drop-shadow(0 0 48px rgba(0, 212, 170, 0.5));
-        }
-
-        #player.shielded::before {
-            content: '';
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-image: url('assets/alkimi_shield_powerup.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.6;
-            animation: shieldPulse 1s ease-in-out infinite;
-        }
-
-        @keyframes shieldPulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
         }
 
         @keyframes playerHit {
@@ -289,110 +250,6 @@
             background-image: url('assets/enemy_opacity_monster.png');
         }
 
-        /* Budget packets */
-        .bubble {
-            position: absolute;
-            width: 48px;
-            height: 48px;
-            background-image: url('assets/alkimi_token_gold.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            animation: bubblePulse 1.2s ease-in-out infinite;
-            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
-        }
-
-        .bubble.display {
-            filter: drop-shadow(0 0 8px rgba(91, 140, 255, 0.6));
-        }
-
-        .bubble.video {
-            filter: drop-shadow(0 0 8px rgba(255, 143, 76, 0.6));
-        }
-
-        .bubble.ctv {
-            filter: drop-shadow(0 0 8px rgba(183, 107, 255, 0.6));
-        }
-
-        .bubble.dooh {
-            filter: drop-shadow(0 0 8px rgba(56, 229, 196, 0.6));
-        }
-
-        .bubble.armored {
-            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 24px rgba(255, 255, 255, 0.5));
-            animation: bubblePulse 0.8s ease-in-out infinite, armoredRotate 2s linear infinite;
-        }
-
-        @keyframes armoredRotate {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.08); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-
-        .bubble.fast {
-            animation: bubblePulse 0.7s ease-in-out infinite;
-            filter: drop-shadow(0 0 12px rgba(0, 212, 170, 0.8));
-        }
-
-        .bubble.decoy {
-            opacity: 0.6;
-            filter: grayscale(0.6) drop-shadow(0 0 6px rgba(128, 128, 128, 0.5));
-        }
-
-        @keyframes bubblePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .bubble-label {
-            text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.6);
-            color: var(--white);
-            font-size: 7px;
-        }
-
-        /* Power-ups */
-        .powerup {
-            position: absolute;
-            width: 44px;
-            height: 44px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            filter: drop-shadow(0 0 12px rgba(0, 212, 170, 0.6));
-            animation: powerupFloat 2s ease-in-out infinite;
-        }
-
-        @keyframes powerupFloat {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-8px) rotate(5deg); }
-        }
-
-        .powerup.proofPulse {
-            background-image: url('assets/power_up_coin.png');
-        }
-
-        .powerup.fraudShield {
-            background-image: url('assets/alkimi_shield_powerup.png');
-        }
-
-        .powerup.bidBooster {
-            background-image: url('assets/alkimi_speed_boost.png');
-        }
-
-        .powerup.supplyCleanser {
-            background-image: url('assets/power_up_coin.png');
-            filter: drop-shadow(0 0 12px rgba(183, 107, 255, 0.6));
-        }
 
         .easter-egg {
             position: absolute;
@@ -420,21 +277,6 @@
             100% { transform: translateX(120%); opacity: 0; }
         }
 
-        .pulse-wave {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            animation: pulseWave 0.8s ease-out forwards;
-            z-index: 110;
-        }
-
-        @keyframes pulseWave {
-            0% { transform: scale(0.4); opacity: 0.9; }
-            100% { transform: scale(8); opacity: 0; }
-        }
-
         .explosion {
             position: absolute;
             width: 56px;
@@ -453,18 +295,6 @@
             100% { transform: scale(2) rotate(180deg); opacity: 0; }
         }
 
-        .bullet {
-            position: absolute;
-            width: 8px;
-            height: 20px;
-            background-image: url('assets/projectile_alkimi_green.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            filter: drop-shadow(0 0 8px rgba(0, 212, 170, 0.8)) drop-shadow(0 0 4px rgba(0, 255, 170, 1));
-            transform: rotate(-90deg);
-        }
-
         /* Screens */
         .screen {
             position: absolute;
@@ -476,7 +306,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 30px;
+            padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
             z-index: 200;
             background: rgba(6, 13, 24, 0.95);
             backdrop-filter: blur(10px);
@@ -525,6 +355,8 @@
             transition: all 0.2s ease;
             text-transform: uppercase;
             letter-spacing: 2px;
+            width: min(320px, 90vw);
+            text-align: center;
         }
 
         .btn-primary {
@@ -702,6 +534,8 @@
             display: flex;
             gap: 30px;
             margin: 30px 0;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .instruction {
@@ -910,11 +744,6 @@
                 height: 56px;
             }
 
-            .bubble {
-                width: 40px;
-                height: 40px;
-            }
-
             .hazard {
                 width: 50px !important;
                 height: 50px !important;
@@ -937,38 +766,28 @@
             <!-- HUD -->
         <div id="hud" class="hidden">
             <div class="hud-item">
-                <div class="hud-label">Budget Delivered</div>
+                <div class="hud-label">Adspend Remaining</div>
                 <div class="hud-value budget">£<span id="budget">0</span></div>
             </div>
             <div class="hud-item">
-                <div class="hud-label">Combo</div>
-                <div class="hud-value combo">
-                    <span id="streak">0</span>
-                    <span id="multiplier" class="combo-multiplier hidden">2x</span>
-                </div>
+                <div class="hud-label">Level</div>
+                <div class="hud-value level"><span id="level">1</span>/3</div>
             </div>
             <div class="hud-item">
-                <div class="hud-label">Time Survived</div>
-                <div class="hud-value score"><span id="time-survived">0</span>s</div>
-            </div>
-            <div class="hud-item">
-                <div class="hud-label">Difficulty Tier</div>
-                <div class="hud-value score"><span id="difficulty-tier">1</span></div>
-            </div>
-            <div class="hud-item">
-                <div class="hud-label">Power-Ups</div>
-                <div class="hud-value powerups" id="powerup-status">None</div>
+                <div class="hud-label">Time Left</div>
+                <div class="hud-value timer"><span id="level-time">60</span>s</div>
             </div>
         </div>
 
         <!-- Player -->
         <div id="player" class="hidden"></div>
+        <div id="level-toast" class="level-toast hidden">Level 1 complete!</div>
 
         <!-- Start Screen -->
         <div id="start-screen" class="screen">
             <div class="logo">Alkimi Exchange</div>
             <h1 class="game-title">Alkimi Delivery Run</h1>
-            <p class="game-subtitle">Pilot the Alkimi ship through programmatic space. Deliver budget packets, dodge the corrupt ad-tech system.</p>
+            <p class="game-subtitle">Protect the adspend by dodging the corrupt ad-tech system. Built for fast, mobile play.</p>
 
             <div class="character-showcase">
                 <div class="showcase-section">
@@ -1014,12 +833,8 @@
                     <div class="instruction-text">Tap/drag<br>to steer</div>
                 </div>
                 <div class="instruction">
-                    <div class="instruction-icon">💰</div>
-                    <div class="instruction-text">Collect<br>tokens</div>
-                </div>
-                <div class="instruction">
-                    <div class="instruction-icon">⚡</div>
-                    <div class="instruction-text">Grab<br>power-ups</div>
+                    <div class="instruction-icon">🛡️</div>
+                    <div class="instruction-text">Avoid<br>hazards</div>
                 </div>
             </div>
 
@@ -1032,7 +847,7 @@
             <div id="new-highscore" class="new-high-score hidden">🏆 New High Score!</div>
             
             <div class="final-score">
-                <div class="final-score-label">Total Budget Delivered</div>
+                <div class="final-score-label">Adspend Remaining</div>
                 <div class="final-score-value" id="final-score">£0</div>
             </div>
 
@@ -1042,23 +857,19 @@
                     <span class="result-value" id="final-time">0s</span>
                 </div>
                 <div class="result-row">
-                    <span class="result-label">Budget Integrity</span>
+                    <span class="result-label">Adspend Protected</span>
                     <span class="result-value highlight" id="final-budget">£0 (0%)</span>
                 </div>
                 <div class="result-row">
-                    <span class="result-label">Peak Combo</span>
-                    <span class="result-value" id="final-streak">0x</span>
-                </div>
-                <div class="result-row">
-                    <span class="result-label">Difficulty Tier</span>
-                    <span class="result-value" id="final-tier">1</span>
+                    <span class="result-label">Levels Cleared</span>
+                    <span class="result-value" id="final-level">1/3</span>
                 </div>
             </div>
 
             <div class="insight-box">
-                <p>Industry average delivery: <strong>50%</strong><br>
-                You delivered <strong id="retention-compare">0%</strong>.<br><br>
-                With Alkimi, brands deliver <strong>90%+</strong> every time.</p>
+                <p>Industry average protection: <strong>50%</strong><br>
+                You protected <strong id="retention-compare">0%</strong> of adspend.<br><br>
+                With Alkimi, brands protect <strong>90%+</strong> every time.</p>
             </div>
 
             <div class="name-input-container" id="name-input-container">
@@ -1097,17 +908,15 @@
         };
 
         const DIFFICULTY_SETTINGS = {
-            interval: 30000,
+            interval: 20000,
             baseSpeed: 2.6,
             speedStep: 0.6,
             hazardSpawnBase: 1500,
-            hazardSpawnMin: 600,
-            bubbleSpawnBase: 900,
-            bubbleSpawnMin: 350,
-            powerupSpawnChance: 0.08
+            hazardSpawnMin: 600
         };
 
-        const COMBO_WINDOW = 1400;
+        const LEVEL_DURATION = 60000;
+        const TOTAL_LEVELS = 3;
         const PLAYER_DIMENSIONS = {
             width: 64,
             height: 64,
@@ -1120,36 +929,18 @@
         const game = {
             isRunning: false,
             budget: 100000,
-            budgetDelivered: 0,
-            score: 0,
-            streak: 0,
-            bestStreak: 0,
-            multiplier: 1,
             playerX: 0,
             playerY: 0,
             targetX: 0,
             hazards: [],
-            bubbles: [],
-            powerups: [],
-            bullets: [],
             speed: DIFFICULTY_SETTINGS.baseSpeed,
             hazardSpawnRate: DIFFICULTY_SETTINGS.hazardSpawnBase,
-            bubbleSpawnRate: DIFFICULTY_SETTINGS.bubbleSpawnBase,
             lastHazardSpawn: 0,
-            lastBubbleSpawn: 0,
-            lastPowerupSpawn: 0,
-            lastShot: 0,
-            fireRate: 420,
             startTime: 0,
             elapsedTime: 0,
             difficultyTier: 0,
-            lastPopTime: 0,
             lastEasterEgg: 0,
-            activePowerups: {
-                fraudShield: 0,
-                bidBooster: 0,
-                supplyCleanser: 0
-            },
+            level: 1,
             animationId: null
         };
 
@@ -1169,28 +960,6 @@
             { type: 'spam-shard', name: 'Opacity Monster', fee: 1200, label: 'Hidden' }
         ];
 
-        const bubbleFormats = [
-            { type: 'display', label: 'Display', value: 1200 },
-            { type: 'video', label: 'Video', value: 1600 },
-            { type: 'ctv', label: 'CTV', value: 2000 },
-            { type: 'dooh', label: 'DOOH', value: 1800 }
-        ];
-
-        const bubbleVariants = [
-            { type: 'standard', speed: 1, health: 1, unlockTier: 0 },
-            { type: 'fast', speed: 1.4, health: 1, unlockTier: 1 },
-            { type: 'armored', speed: 1, health: 2, unlockTier: 2 },
-            { type: 'splitting', speed: 1.1, health: 1, unlockTier: 3 },
-            { type: 'decoy', speed: 0.9, health: 1, unlockTier: 4, decoy: true }
-        ];
-
-        const powerupTypes = [
-            { type: 'proofPulse', icon: '💥', label: 'Proof Pulse', duration: 0 },
-            { type: 'fraudShield', icon: '🛡', label: 'Fraud Shield', duration: 6000 },
-            { type: 'bidBooster', icon: '⚡', label: 'Bid Booster', duration: 6000 },
-            { type: 'supplyCleanser', icon: '✨', label: 'Supply Cleanser', duration: 5000 }
-        ];
-
         // Initialize
         function init() {
             setupEventListeners();
@@ -1201,10 +970,6 @@
             // Touch/Mouse controls
             container.addEventListener('touchstart', handleInput, { passive: false });
             container.addEventListener('touchmove', handleInput, { passive: false });
-            container.addEventListener('mousedown', handleInput);
-            container.addEventListener('mousemove', (e) => {
-                if (game.isRunning && e.buttons === 1) handleInput(e);
-            });
 
             // Buttons
             document.getElementById('start-btn').addEventListener('click', startGame);
@@ -1213,13 +978,6 @@
             document.getElementById('leaderboard-btn').addEventListener('click', showLeaderboard);
             document.getElementById('back-btn').addEventListener('click', showStartScreen);
 
-            // Keyboard (for testing)
-            document.addEventListener('keydown', (e) => {
-                if (!game.isRunning) return;
-                const moveAmount = 50;
-                if (e.key === 'ArrowLeft') game.targetX = Math.max(PLAYER_DIMENSIONS.halfWidth, game.playerX - moveAmount);
-                if (e.key === 'ArrowRight') game.targetX = Math.min(container.clientWidth - PLAYER_DIMENSIONS.halfWidth, game.playerX + moveAmount);
-            });
         }
 
         function handleInput(e) {
@@ -1240,35 +998,18 @@
             // Reset game state
             game.isRunning = true;
             game.budget = 100000;
-            game.budgetDelivered = 0;
-            game.score = 0;
-            game.streak = 0;
-            game.bestStreak = 0;
-            game.multiplier = 1;
             game.speed = DIFFICULTY_SETTINGS.baseSpeed;
             game.hazardSpawnRate = DIFFICULTY_SETTINGS.hazardSpawnBase;
-            game.bubbleSpawnRate = DIFFICULTY_SETTINGS.bubbleSpawnBase;
             game.lastHazardSpawn = 0;
-            game.lastBubbleSpawn = 0;
-            game.lastPowerupSpawn = 0;
-            game.lastShot = 0;
             game.startTime = 0;
             game.elapsedTime = 0;
             game.difficultyTier = 0;
-            game.lastPopTime = 0;
             game.lastEasterEgg = 0;
+            game.level = 1;
             game.hazards = [];
-            game.bubbles = [];
-            game.powerups = [];
-            game.bullets = [];
-            game.activePowerups = {
-                fraudShield: 0,
-                bidBooster: 0,
-                supplyCleanser: 0
-            };
 
             // Clear existing obstacles
-            document.querySelectorAll('.hazard, .bubble, .powerup, .bullet, .damage-number, .speed-line, .pulse-wave, .explosion, .easter-egg').forEach(el => el.remove());
+            document.querySelectorAll('.hazard, .damage-number, .speed-line, .explosion, .easter-egg').forEach(el => el.remove());
 
             // Position player
             game.playerX = container.clientWidth / 2;
@@ -1284,6 +1025,7 @@
             leaderboardScreen.classList.add('hidden');
             hud.classList.remove('hidden');
             player.classList.remove('hidden');
+            document.getElementById('level-toast').classList.add('hidden');
 
             // Start game loop (cancel any existing animation first)
             if (game.animationId) {
@@ -1301,31 +1043,11 @@
             game.elapsedTime = timestamp - game.startTime;
 
             updateDifficulty();
-            updatePowerups(timestamp);
 
             // Spawn hazards
             if (timestamp - game.lastHazardSpawn > game.hazardSpawnRate) {
                 spawnHazard();
                 game.lastHazardSpawn = timestamp;
-            }
-
-            // Spawn bubbles
-            if (timestamp - game.lastBubbleSpawn > game.bubbleSpawnRate) {
-                spawnBubble();
-                game.lastBubbleSpawn = timestamp;
-            }
-
-            // Spawn powerups occasionally
-            if (timestamp - game.lastPowerupSpawn > 1200 && Math.random() < DIFFICULTY_SETTINGS.powerupSpawnChance) {
-                spawnPowerup();
-                game.lastPowerupSpawn = timestamp;
-            }
-
-            // Auto fire
-            const currentFireRate = isPowerupActive('bidBooster') ? 240 : game.fireRate;
-            if (timestamp - game.lastShot > currentFireRate) {
-                spawnBullet();
-                game.lastShot = timestamp;
             }
 
             maybeSpawnEasterEgg(timestamp);
@@ -1337,9 +1059,6 @@
 
             // Update obstacles
             updateHazards();
-            updateBubbles(timestamp);
-            updatePowerupDrops();
-            updateBullets();
 
             // Update HUD
             updateHUD();
@@ -1376,10 +1095,27 @@
                 DIFFICULTY_SETTINGS.hazardSpawnMin,
                 DIFFICULTY_SETTINGS.hazardSpawnBase - game.difficultyTier * 120
             );
-            game.bubbleSpawnRate = Math.max(
-                DIFFICULTY_SETTINGS.bubbleSpawnMin,
-                DIFFICULTY_SETTINGS.bubbleSpawnBase - game.difficultyTier * 90
-            );
+
+            const newLevel = Math.min(TOTAL_LEVELS, Math.floor(game.elapsedTime / LEVEL_DURATION) + 1);
+            if (newLevel !== game.level) {
+                const completedLevel = game.level;
+                game.level = newLevel;
+                showLevelToast(`Level ${completedLevel} complete!`);
+            }
+
+            if (game.elapsedTime >= LEVEL_DURATION * TOTAL_LEVELS) {
+                endGame();
+            }
+        }
+
+        function showLevelToast(message) {
+            const toast = document.getElementById('level-toast');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            clearTimeout(toast.hideTimeout);
+            toast.hideTimeout = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 1600);
         }
 
         function spawnHazard() {
@@ -1412,78 +1148,6 @@
             });
         }
 
-        function spawnBubble() {
-            const format = bubbleFormats[Math.floor(Math.random() * bubbleFormats.length)];
-            const availableVariants = bubbleVariants.filter(variant => variant.unlockTier <= game.difficultyTier);
-            const variant = availableVariants[Math.floor(Math.random() * availableVariants.length)];
-            const size = variant.type === 'splitting' ? 46 : 48;
-            const x = Math.random() * (container.clientWidth - size);
-            
-            const bubble = document.createElement('div');
-            bubble.className = `bubble ${format.type} ${variant.type}`;
-            bubble.style.left = x + 'px';
-            bubble.style.top = '-50px';
-            bubble.style.width = size + 'px';
-            bubble.style.height = size + 'px';
-            bubble.innerHTML = `<span class="bubble-label">${format.label}</span>`;
-            
-            container.appendChild(bubble);
-            
-            game.bubbles.push({
-                element: bubble,
-                x: x,
-                y: -50,
-                width: size,
-                height: size,
-                value: format.value,
-                type: variant.type,
-                speed: variant.speed,
-                health: variant.health,
-                decoy: variant.decoy || false
-            });
-        }
-
-        function spawnPowerup() {
-            const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
-            const x = Math.random() * (container.clientWidth - 44);
-
-            const powerup = document.createElement('div');
-            powerup.className = `powerup ${type.type}`;
-            powerup.style.left = x + 'px';
-            powerup.style.top = '-50px';
-            powerup.dataset.type = type.type;
-
-            container.appendChild(powerup);
-
-            game.powerups.push({
-                element: powerup,
-                x: x,
-                y: -50,
-                width: 44,
-                height: 44,
-                type: type.type
-            });
-        }
-
-        function spawnBullet() {
-            const bullet = document.createElement('div');
-            bullet.className = 'bullet';
-            const x = game.playerX - 3;
-            const y = game.playerY - PLAYER_DIMENSIONS.halfHeight - 10;
-            bullet.style.left = x + 'px';
-            bullet.style.top = y + 'px';
-            container.appendChild(bullet);
-
-            game.bullets.push({
-                element: bullet,
-                x: x,
-                y: y,
-                width: 6,
-                height: 14,
-                speed: 7
-            });
-        }
-
         function updateHazards() {
             const playerRect = {
                 x: game.playerX - PLAYER_DIMENSIONS.hitbox / 2,
@@ -1512,107 +1176,6 @@
             });
         }
 
-        function updateBubbles(timestamp) {
-            const playerRect = {
-                x: game.playerX - PLAYER_DIMENSIONS.hitbox / 2,
-                y: game.playerY - PLAYER_DIMENSIONS.hitbox / 2,
-                width: PLAYER_DIMENSIONS.hitbox,
-                height: PLAYER_DIMENSIONS.hitbox
-            };
-
-            if (game.lastPopTime && timestamp - game.lastPopTime > COMBO_WINDOW && game.streak > 0) {
-                resetCombo();
-            }
-
-            game.bubbles = game.bubbles.filter(bubble => {
-                bubble.y += game.speed * bubble.speed;
-                bubble.element.style.top = bubble.y + 'px';
-
-                if (checkCollision(playerRect, bubble)) {
-                    const popped = popBubble(bubble, timestamp);
-                    return !popped;
-                }
-
-                // Remove if off screen
-                if (bubble.y > container.clientHeight) {
-                    bubble.element.remove();
-                    return false;
-                }
-
-                return true;
-            });
-        }
-
-        function updatePowerupDrops() {
-            const playerRect = {
-                x: game.playerX - PLAYER_DIMENSIONS.hitbox / 2,
-                y: game.playerY - PLAYER_DIMENSIONS.hitbox / 2,
-                width: PLAYER_DIMENSIONS.hitbox,
-                height: PLAYER_DIMENSIONS.hitbox
-            };
-
-            game.powerups = game.powerups.filter(powerup => {
-                powerup.y += game.speed * 0.9;
-                powerup.element.style.top = powerup.y + 'px';
-
-                if (checkCollision(playerRect, powerup)) {
-                    activatePowerup(powerup.type);
-                    powerup.element.remove();
-                    return false;
-                }
-
-                if (powerup.y > container.clientHeight) {
-                    powerup.element.remove();
-                    return false;
-                }
-
-                return true;
-            });
-        }
-
-        function updateBullets() {
-            game.bullets = game.bullets.filter(bullet => {
-                bullet.y -= bullet.speed;
-                const targetX = isPowerupActive('bidBooster') ? getNearestBubbleX(bullet.x) : null;
-                if (targetX !== null) {
-                    bullet.x += (targetX - bullet.x) * 0.05;
-                }
-                bullet.element.style.left = bullet.x + 'px';
-                bullet.element.style.top = bullet.y + 'px';
-
-                const hitBubble = game.bubbles.find(bubble => checkCollision(bullet, bubble));
-                if (hitBubble) {
-                    const popped = popBubble(hitBubble, performance.now());
-                    if (popped) {
-                        game.bubbles = game.bubbles.filter(bubble => bubble !== hitBubble);
-                    }
-                    bullet.element.remove();
-                    return false;
-                }
-
-                if (bullet.y < -20) {
-                    bullet.element.remove();
-                    return false;
-                }
-
-                return true;
-            });
-        }
-
-        function getNearestBubbleX(x) {
-            if (game.bubbles.length === 0) return null;
-            let closest = game.bubbles[0];
-            let bestDist = Math.abs(closest.x - x);
-            game.bubbles.forEach(bubble => {
-                const dist = Math.abs(bubble.x - x);
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    closest = bubble;
-                }
-            });
-            return closest.x;
-        }
-
         function checkCollision(rect1, rect2) {
             return rect1.x < rect2.x + rect2.width &&
                    rect1.x + rect1.width > rect2.x &&
@@ -1621,15 +1184,7 @@
         }
 
         function hitHazard(hazard) {
-            if (isPowerupActive('fraudShield')) {
-                showDamageNumber(hazard.x, hazard.y, 'Shielded', 'positive');
-                showExplosion(hazard.x + hazard.width / 2, hazard.y + hazard.height / 2);
-                hazard.element.remove();
-                return;
-            }
-
             game.budget -= hazard.fee;
-            resetCombo();
 
             // Visual feedback
             player.classList.add('hit');
@@ -1655,75 +1210,6 @@
             }
         }
 
-        function popBubble(bubble, timestamp) {
-            bubble.health -= 1;
-            if (bubble.health > 0) {
-                bubble.element.classList.add('armored');
-                showDamageNumber(bubble.x, bubble.y, 'Cracked', 'positive');
-                return false;
-            }
-
-            const isDecoy = bubble.decoy && !isPowerupActive('supplyCleanser');
-            const reward = isDecoy ? 0 : bubble.value;
-
-            if (reward > 0) {
-                game.score += reward * game.multiplier;
-                game.budgetDelivered += reward * game.multiplier;
-                registerCombo(timestamp);
-                showExplosion(bubble.x + bubble.width / 2, bubble.y + bubble.height / 2);
-            } else {
-                resetCombo();
-            }
-
-            if (bubble.type === 'splitting') {
-                spawnSplitBubbles(bubble);
-            }
-
-            showDamageNumber(bubble.x, bubble.y, isDecoy ? 'Junk' : `+£${reward * game.multiplier}`, 'positive');
-            bubble.element.remove();
-            return true;
-        }
-
-        function registerCombo(timestamp) {
-            if (timestamp - game.lastPopTime <= COMBO_WINDOW) {
-                game.streak += 1;
-            } else {
-                game.streak = 1;
-            }
-            game.lastPopTime = timestamp;
-            updateMultiplier();
-        }
-
-        function resetCombo() {
-            game.streak = 0;
-            game.multiplier = 1;
-            game.lastPopTime = 0;
-        }
-
-        function updateMultiplier() {
-            if (game.streak >= 10) {
-                game.multiplier = 4;
-            } else if (game.streak >= 6) {
-                game.multiplier = 3;
-            } else if (game.streak >= 3) {
-                game.multiplier = 2;
-            } else {
-                game.multiplier = 1;
-            }
-
-            if (game.streak > game.bestStreak) {
-                game.bestStreak = game.streak;
-            }
-
-            const multiplierEl = document.getElementById('multiplier');
-            if (game.multiplier > 1) {
-                multiplierEl.textContent = game.multiplier + 'x';
-                multiplierEl.classList.remove('hidden');
-            } else {
-                multiplierEl.classList.add('hidden');
-            }
-        }
-
         function showDamageNumber(x, y, text, type) {
             const dmg = document.createElement('div');
             dmg.className = `damage-number ${type}`;
@@ -1745,32 +1231,6 @@
             setTimeout(() => explosion.remove(), 500);
         }
 
-        function spawnSplitBubbles(originalBubble) {
-            for (let i = 0; i < 2; i++) {
-                const x = Math.max(0, Math.min(container.clientWidth - 34, originalBubble.x + (i === 0 ? -18 : 18)));
-                const bubble = document.createElement('div');
-                bubble.className = `bubble ${originalBubble.element.classList.contains('display') ? 'display' : originalBubble.element.classList.contains('video') ? 'video' : originalBubble.element.classList.contains('ctv') ? 'ctv' : 'dooh'} fast`;
-                bubble.style.left = x + 'px';
-                bubble.style.top = originalBubble.y + 'px';
-                bubble.style.width = '34px';
-                bubble.style.height = '34px';
-                bubble.innerHTML = `<span class="bubble-label">Split</span>`;
-                container.appendChild(bubble);
-                game.bubbles.push({
-                    element: bubble,
-                    x: x,
-                    y: originalBubble.y,
-                    width: 34,
-                    height: 34,
-                    value: Math.max(600, Math.floor(originalBubble.value / 2)),
-                    type: 'fast',
-                    speed: 1.4,
-                    health: 1,
-                    decoy: false
-                });
-            }
-        }
-
         function spawnSpeedLine() {
             const line = document.createElement('div');
             line.className = 'speed-line';
@@ -1781,80 +1241,20 @@
             setTimeout(() => line.remove(), 500);
         }
 
-        function updatePowerups(timestamp) {
-            const now = timestamp;
-            const shieldActive = isPowerupActive('fraudShield');
-            if (shieldActive) {
-                player.classList.add('shielded');
-            } else {
-                player.classList.remove('shielded');
-            }
-
-            Object.keys(game.activePowerups).forEach(key => {
-                if (game.activePowerups[key] && game.activePowerups[key] < now) {
-                    game.activePowerups[key] = 0;
-                }
-            });
-        }
-
-        function activatePowerup(type) {
-            const powerup = powerupTypes.find(item => item.type === type);
-            if (!powerup) return;
-
-            if (type === 'proofPulse') {
-                triggerPulse();
-                return;
-            }
-
-            game.activePowerups[type] = performance.now() + powerup.duration;
-        }
-
-        function triggerPulse() {
-            const wave = document.createElement('div');
-            wave.className = 'pulse-wave';
-            wave.style.left = game.playerX - 40 + 'px';
-            wave.style.top = game.playerY - 40 + 'px';
-            container.appendChild(wave);
-            setTimeout(() => wave.remove(), 800);
-
-            const now = performance.now();
-            game.bubbles.forEach(bubble => {
-                popBubble(bubble, now);
-                if (bubble.element.isConnected) {
-                    bubble.element.remove();
-                }
-            });
-            game.bubbles = [];
-        }
-
-        function isPowerupActive(type) {
-            return game.activePowerups[type] && game.activePowerups[type] > performance.now();
-        }
-
         function updateHUD() {
-            document.getElementById('budget').textContent = game.budgetDelivered.toLocaleString();
-            document.getElementById('streak').textContent = game.streak;
-            document.getElementById('time-survived').textContent = Math.floor(game.elapsedTime / 1000);
-            document.getElementById('difficulty-tier').textContent = game.difficultyTier + 1;
+            const elapsedInLevel = game.elapsedTime % LEVEL_DURATION;
+            const timeLeft = Math.max(0, Math.ceil((LEVEL_DURATION - elapsedInLevel) / 1000));
 
-            const powerupStatus = document.getElementById('powerup-status');
-            const activeLabels = [];
-            powerupTypes.forEach(powerup => {
-                if (powerup.duration > 0 && isPowerupActive(powerup.type)) {
-                    const remaining = Math.ceil((game.activePowerups[powerup.type] - performance.now()) / 1000);
-                    activeLabels.push(`<span class="powerup-pill">${powerup.icon} ${powerup.label} <strong>${remaining}s</strong></span>`);
-                }
-            });
-            powerupStatus.innerHTML = activeLabels.length ? activeLabels.join('') : 'None';
+            document.getElementById('budget').textContent = game.budget.toLocaleString();
+            document.getElementById('level').textContent = game.level;
+            document.getElementById('level-time').textContent = timeLeft;
         }
 
         function endGame() {
             game.isRunning = false;
             cancelAnimationFrame(game.animationId);
 
-            // Calculate final score with budget multiplier
-            const budgetMultiplier = 1 + (game.budget / 100);
-            const finalScore = Math.floor(game.score * budgetMultiplier);
+            const finalScore = game.budget;
             const retention = Math.floor((game.budget / 100000) * 100);
 
             // Check for high score
@@ -1865,8 +1265,7 @@
             document.getElementById('final-score').textContent = `£${finalScore.toLocaleString()}`;
             document.getElementById('final-time').textContent = Math.floor(game.elapsedTime / 1000) + 's';
             document.getElementById('final-budget').textContent = `£${game.budget.toLocaleString()} (${retention}%)`;
-            document.getElementById('final-streak').textContent = `${game.bestStreak}`;
-            document.getElementById('final-tier').textContent = game.difficultyTier + 1;
+            document.getElementById('final-level').textContent = `${game.level}/${TOTAL_LEVELS}`;
             document.getElementById('retention-compare').textContent = retention + '%';
 
             // Show/hide high score badge
@@ -1905,7 +1304,6 @@
                 agency: agency,
                 score: game.finalScore,
                 budget: game.budget,
-                delivered: game.budgetDelivered,
                 date: new Date().toISOString()
             });
 
