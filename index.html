@@ -305,11 +305,23 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
             z-index: 200;
             background: rgba(6, 13, 24, 0.95);
             backdrop-filter: blur(10px);
+            min-height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+            gap: 12px;
+            scroll-padding-top: 16px;
+        }
+
+        @media (min-height: 820px) {
+            .screen {
+                justify-content: center;
+            }
         }
 
         .screen.hidden {
